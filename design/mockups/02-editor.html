@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SplitFace — Editor (mockup)</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="wrap">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>SplitFace</div>
+    <nav class="nav-links">
+      <a href="#">How it works</a>
+      <a href="#">Examples</a>
+      <button type="button" class="btn-pro"><span class="spark" aria-hidden="true">✦</span> Go Pro</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="section">
+    <div class="kicker">Step 2 of 3 · Edit</div>
+    <h2 class="h2">Your split-face is ready</h2>
+    <p class="sub">Drag the handle to move the split, or flip the sides. The preview updates live.</p>
+  </section>
+
+  <div class="editor-layout">
+    <!-- Source photos -->
+    <div class="src-col">
+      <div class="src-card">
+        <img src="assets/sample-parent-thumb.jpg" alt="Photo A — parent portrait">
+        <div class="src-meta">
+          <div><div class="src-name">Photo A</div><div class="src-role">Left half</div></div>
+          <span class="align-pill">✓ Face found</span>
+        </div>
+        <div class="src-actions"><button type="button" class="link-btn">Replace</button></div>
+      </div>
+      <div class="src-card">
+        <img src="assets/sample-child-thumb.jpg" alt="Photo B — child portrait">
+        <div class="src-meta">
+          <div><div class="src-name">Photo B</div><div class="src-role">Right half</div></div>
+          <span class="align-pill">✓ Face found</span>
+        </div>
+        <div class="src-actions"><button type="button" class="link-btn">Replace</button></div>
+      </div>
+    </div>
+
+    <!-- Live merge preview -->
+    <div class="preview-shell">
+      <div class="preview-top">
+        <span class="t">Live preview</span>
+        <span class="live-pill"><span class="blink" aria-hidden="true"></span>MERGED</span>
+      </div>
+      <div class="canvas-wrap" role="group" aria-label="Split-face merge preview. Drag the split handle to adjust the split position.">
+        <img src="assets/merge-preview.jpg" alt="Split-face merge of two portraits">
+        <span class="split-tag left">A · LEFT</span>
+        <span class="split-tag right">B · RIGHT</span>
+        <div class="split-line" style="left:50%;">
+          <div class="split-handle" role="slider" tabindex="0"
+               aria-label="Split position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+               title="Drag to move the split">
+            <span class="chev" aria-hidden="true">‹</span><span class="chev" aria-hidden="true">›</span>
+          </div>
+        </div>
+        <div class="drag-hint" aria-hidden="true">⟷ Drag to move the split</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control-card">
+        <h4>Flip sides</h4>
+        <p class="desc">Swap which photo appears on the left vs. right.</p>
+        <button type="button" class="flip-btn">⇄ Flip sides</button>
+        <div class="flip-faces">
+          <img src="assets/sample-parent-thumb.jpg" alt="Photo A thumbnail">
+          <span class="swap" aria-hidden="true">⇄</span>
+          <img src="assets/sample-child-thumb.jpg" alt="Photo B thumbnail">
+        </div>
+      </div>
+
+      <div class="control-card">
+        <h4>Alignment</h4>
+        <p class="desc">Both faces were auto-detected and normalized.</p>
+        <div class="stat-row"><span class="k">Eyes leveled</span><span class="v">✓</span></div>
+        <div class="stat-row"><span class="k">Face scale matched</span><span class="v">✓</span></div>
+        <div class="stat-row"><span class="k">Split position</span><span class="v">50%</span></div>
+      </div>
+
+      <div class="pro-nudge">
+        <div class="price">$4.99 <small>one-time</small></div>
+        <p>Export without the watermark, in full HD.</p>
+        <button type="button" class="btn">Remove watermark + HD</button>
+      </div>
+
+      <button type="button" class="btn btn-primary btn-lg btn-block">Export →</button>
+    </div>
+  </div>
+
+  <footer class="mini-footer">SplitFace · mockup — made for design review only</footer>
+</main>
+
+</body>
+</html>

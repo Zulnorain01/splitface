@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SplitFace — Mobile (mockup)</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="mobile-page">
+
+<div class="mobile-shell">
+  <div class="m-header">
+    <div class="row">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span>SplitFace</div>
+      <span class="m-step">Step 2 of 3</span>
+    </div>
+  </div>
+
+  <div class="m-body">
+    <h2>Your split-face is ready</h2>
+    <p class="sub">Drag the handle on the preview to move the split.</p>
+
+    <!-- Stacked upload slots -->
+    <div class="m-slots">
+      <div class="m-slot filled">
+        <img src="assets/sample-parent-thumb.jpg" alt="Photo A">
+        <div class="info"><b>Photo A · left half</b><span>✓ Face found</span></div>
+        <button type="button" class="mini-btn">Replace</button>
+      </div>
+      <div class="m-slot filled">
+        <img src="assets/sample-child-thumb.jpg" alt="Photo B">
+        <div class="info"><b>Photo B · right half</b><span>✓ Face found</span></div>
+        <button type="button" class="mini-btn">Replace</button>
+      </div>
+    </div>
+
+    <!-- Full-width preview -->
+    <div class="m-preview">
+      <div class="canvas-wrap" role="group" aria-label="Split-face merge preview. Drag the split handle to adjust the split position.">
+        <img src="assets/merge-preview.jpg" alt="Split-face merge preview">
+        <span class="split-tag left">A</span>
+        <span class="split-tag right">B</span>
+        <div class="split-line" style="left:50%;">
+          <div class="split-handle" role="slider" tabindex="0"
+               aria-label="Split position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+               title="Drag to move the split"><span class="chev" aria-hidden="true">‹</span><span class="chev" aria-hidden="true">›</span></div>
+        </div>
+        <div class="drag-hint" aria-hidden="true">⟷ Drag to move the split</div>
+      </div>
+      <span class="m-align">✓ Faces aligned — eyes leveled &amp; scaled</span>
+    </div>
+  </div>
+
+  <div class="m-pro-strip">
+    <div class="txt"><b>$4.99 one-time</b><span>Remove watermark + HD export</span></div>
+    <button type="button" class="go">Go Pro ✦</button>
+  </div>
+
+  <!-- Sticky bottom export bar -->
+  <div class="m-sticky">
+    <button type="button" class="btn btn-ghost btn-flip" aria-label="Flip sides">⇄</button>
+    <button type="button" class="btn btn-primary">Export →</button>
+  </div>
+</div>
+
+</body>
+</html>

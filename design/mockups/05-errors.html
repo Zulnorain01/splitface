@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SplitFace — Error states (mockup)</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="wrap">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>SplitFace</div>
+    <nav class="nav-links">
+      <a href="#">How it works</a>
+      <a href="#">Examples</a>
+      <button type="button" class="btn-pro"><span class="spark" aria-hidden="true">✦</span> Go Pro</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="section">
+    <div class="kicker">Step 1 of 3 · Upload</div>
+    <h2 class="h2">Add your two photos</h2>
+    <p class="sub">Front-facing portraits work best — good lighting, both eyes visible.</p>
+
+    <!-- Invalid file toast -->
+    <div class="toast error" role="alert">
+      <div class="t-icon">✕</div>
+      <div>
+        <b>That file isn't a photo.</b> “resume-final-DRAFT.pdf” can't be used — please choose a JPG, PNG or WebP image.
+      </div>
+    </div>
+
+    <div class="upload-grid">
+      <!-- Photo A — filled, no face found -->
+      <div class="slot slot-filled">
+        <img class="thumb" src="assets/sample-parent-thumb.jpg" alt="Photo A — uploaded photo">
+        <div class="slot-foot">
+          <span class="slot-tag" style="position:static;">A · LEFT</span>
+          <span class="name">beach-day.jpg</span>
+        </div>
+        <div class="slot-error-note">
+          <p><b>We couldn't find a face in this photo.</b> Try a clearer, front-facing shot with both eyes visible — or continue with a plain center crop.</p>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="btn btn-warn btn-sm">Use center crop anyway</button>
+            <button type="button" class="btn btn-ghost btn-sm">Replace photo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo B — filled, OK -->
+      <div class="slot slot-filled">
+        <img class="thumb" src="assets/sample-child-thumb.jpg" alt="Photo B — uploaded photo">
+        <div class="slot-foot">
+          <span class="slot-tag b" style="position:static;">B · RIGHT</span>
+          <span class="name">kid-portrait.jpg</span>
+          <span class="ok">✓ Face found</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Too-large file warning (secondary example) -->
+    <div class="toast warn" role="alert">
+      <div class="t-icon">!</div>
+      <div>
+        <b>Heads up: one photo is very large (48 MB).</b> We'll shrink it down automatically so everything stays fast — quality won't suffer.
+      </div>
+    </div>
+
+    <div class="sample-row" style="margin-bottom:64px;">
+      <button type="button" class="btn btn-primary btn-lg" style="margin:0 auto;">Continue →</button>
+    </div>
+  </section>
+
+  <footer class="mini-footer">SplitFace · mockup — made for design review only</footer>
+</main>
+
+</body>
+</html>

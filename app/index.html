@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SplitFace — Fuse two faces into one viral split-face</title>
+<meta name="description" content="Upload two photos — SplitFace detects the faces, aligns them, and merges them into a share-ready split-face portrait. 100% in your browser.">
+<link rel="stylesheet" href="vendor/fonts/fonts.css">
+<link rel="stylesheet" href="styles.css">
+<script src="config.js"></script>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="wrap">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span>SplitFace</div>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#how-it-works">How it works</a>
+      <a href="#how-it-works">Examples</a>
+      <button type="button" class="btn-pro" data-gopro><span class="spark" aria-hidden="true">✦</span> <span class="btn-pro-label">Go Pro</span></button>
+    </nav>
+  </div>
+</header>
+
+<!-- ==================== VIEW 1: UPLOAD ==================== -->
+<main class="view" id="view-upload">
+  <section class="hero">
+    <div class="hero-shape"></div>
+    <div class="wrap">
+      <h1>Fuse two faces into one <span class="hl">viral split-face</span>.</h1>
+      <p>Drop in two photos — we detect the faces, align them, and merge them live. No editing skills, no 20-minute CapCut tutorial.</p>
+      <div class="hero-badges">
+        <span class="hero-badge"><span class="dot"></span>100% in your browser</span>
+        <span class="hero-badge"><span class="dot"></span>No sign-up needed</span>
+        <span class="hero-badge"><span class="dot"></span>Free to try</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <section class="section">
+      <div class="kicker">Step 1 of 3 · Upload</div>
+      <h2 class="h2">Add your two photos</h2>
+      <p class="sub">Front-facing portraits work best — good lighting, both eyes visible. Everything runs on your device; your photos never leave this page.</p>
+
+      <div class="upload-grid">
+        <div class="slot" id="slot-a" data-slot="A" role="button" tabindex="0" aria-label="Upload Photo A">
+          <span class="slot-tag">A · LEFT</span>
+          <div class="slot-icon">⤓</div>
+          <h3>Drop Photo A here</h3>
+          <p class="slot-sub">This becomes the left half of the merge</p>
+          <button type="button" class="btn btn-primary" data-choose="A">Choose photo</button>
+          <span class="or">or drag &amp; drop a JPG / PNG</span>
+        </div>
+        <div class="slot" id="slot-b" data-slot="B" role="button" tabindex="0" aria-label="Upload Photo B">
+          <span class="slot-tag b">B · RIGHT</span>
+          <div class="slot-icon">🖼</div>
+          <h3>Photo B</h3>
+          <p class="slot-sub">This becomes the right half of the merge</p>
+          <button type="button" class="btn btn-ghost" data-choose="B">Choose photo</button>
+          <span class="or">or drag &amp; drop a JPG / PNG</span>
+        </div>
+      </div>
+
+      <div class="sample-row">
+        <span class="divider"></span>
+        <span class="or-text">NO PHOTOS HANDY?</span>
+        <span class="divider"></span>
+      </div>
+      <div style="text-align:center; margin-top:16px;">
+        <button type="button" class="btn btn-dark btn-lg" id="btn-sample">✨ Try sample photos</button>
+        <p class="sub" style="margin:12px auto 0; text-align:center;">See the whole magic in 3 seconds — no upload needed.</p>
+      </div>
+
+      <div class="continue-row" id="continue-row" hidden>
+        <button type="button" class="btn btn-primary btn-lg" id="btn-continue">Continue →</button>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works">
+      <div class="kicker">How it works</div>
+      <h2 class="h2">Three taps to TikTok-ready</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div><h4>Upload two portraits</h4><p>Parent + child, you + your bestie, then vs. now — any two faces.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div><h4>We align the faces</h4><p>Eyes leveled and scaled automatically. Drag the split line to taste.</p></div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div><h4>Export &amp; post</h4><p>Download a share-ready portrait (1080×1350) and post it straight to TikTok.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mini-footer">SplitFace · your photos never leave this device</footer>
+  </div>
+</main>
+
+<!-- ==================== VIEW 2: EDITOR ==================== -->
+<main class="view editor-page" id="view-editor" hidden>
+  <div class="wrap">
+    <section class="section">
+      <div class="kicker">Step 2 of 3 · Edit</div>
+      <h2 class="h2">Your split-face is ready</h2>
+      <p class="sub">Drag the handle to move the split, or flip the sides. The preview updates live.</p>
+      <button type="button" class="back-link" id="btn-back-upload">← Change photos</button>
+    </section>
+
+    <div class="editor-layout">
+      <!-- Source photos -->
+      <div class="src-col">
+        <div class="src-card" id="src-card-a">
+          <img id="src-img-a" alt="Photo A — left half source">
+          <div class="src-meta">
+            <div><div class="src-name">Photo A</div><div class="src-role" id="src-role-a">Left half</div></div>
+            <span class="align-pill pending" id="pill-a"><span class="spin" aria-hidden="true"></span> Detecting…</span>
+          </div>
+          <div class="src-actions"><button type="button" class="link-btn" data-replace="A">Replace</button></div>
+        </div>
+        <div class="src-card" id="src-card-b">
+          <img id="src-img-b" alt="Photo B — right half source">
+          <div class="src-meta">
+            <div><div class="src-name">Photo B</div><div class="src-role" id="src-role-b">Right half</div></div>
+            <span class="align-pill pending" id="pill-b"><span class="spin" aria-hidden="true"></span> Detecting…</span>
+          </div>
+          <div class="src-actions"><button type="button" class="link-btn" data-replace="B">Replace</button></div>
+        </div>
+      </div>
+
+      <!-- Live merge preview -->
+      <div class="preview-shell">
+        <div class="preview-top">
+          <span class="t">Live preview</span>
+          <span class="live-pill"><span class="blink" aria-hidden="true"></span>MERGED</span>
+        </div>
+        <div class="canvas-wrap" id="canvas-wrap" role="group" aria-label="Split-face merge preview. Drag the split handle to adjust the split position.">
+          <canvas id="merge-canvas"></canvas>
+          <span class="split-tag left" id="tag-left">A · LEFT</span>
+          <span class="split-tag right" id="tag-right">B · RIGHT</span>
+          <div class="split-line" id="split-line" style="left:50%;">
+            <div class="split-handle" id="split-handle" role="slider" tabindex="0"
+                 aria-label="Split position" aria-valuemin="5" aria-valuemax="95" aria-valuenow="50"
+                 title="Drag to move the split">
+              <span class="chev" aria-hidden="true">‹</span><span class="chev" aria-hidden="true">›</span>
+            </div>
+          </div>
+          <div class="drag-hint" id="drag-hint" aria-hidden="true">⟷ Drag to move the split</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <div class="control-card">
+          <h4>Flip sides</h4>
+          <p class="desc">Swap which photo appears on the left vs. right.</p>
+          <button type="button" class="flip-btn" id="btn-flip">⇄ Flip sides</button>
+          <div class="flip-faces">
+            <img id="flip-thumb-a" alt="Photo A thumbnail">
+            <span class="swap" aria-hidden="true">⇄</span>
+            <img id="flip-thumb-b" alt="Photo B thumbnail">
+          </div>
+        </div>
+
+        <div class="control-card">
+          <h4>Alignment</h4>
+          <p class="desc" id="align-desc">Both faces were auto-detected and normalized.</p>
+          <div class="stat-row"><span class="k">Eyes leveled</span><span class="v" id="stat-eyes">✓</span></div>
+          <div class="stat-row"><span class="k">Face scale matched</span><span class="v" id="stat-scale">✓</span></div>
+          <div class="stat-row"><span class="k">Split position</span><span class="v split-v" id="stat-split">50%</span></div>
+        </div>
+
+        <div class="pro-nudge" id="pro-nudge">
+          <div class="price">$4.99 <small>one-time</small></div>
+          <p>Export without the watermark, in full HD.</p>
+          <button type="button" class="btn" data-gopro>Remove watermark + HD</button>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-lg btn-block" id="btn-export">Export →</button>
+      </div>
+    </div>
+
+    <footer class="mini-footer">SplitFace · your photos never leave this device</footer>
+  </div>
+
+  <!-- Sticky bottom bar (mobile) -->
+  <div id="editor-sticky">
+    <button type="button" class="btn btn-ghost btn-flip" id="m-btn-flip" aria-label="Flip sides">⇄</button>
+    <button type="button" class="btn btn-primary" id="m-btn-export">Export →</button>
+  </div>
+</main>
+
+<!-- ==================== VIEW 3: EXPORT ==================== -->
+<main class="view" id="view-export" hidden>
+  <div class="wrap">
+    <section class="section" id="export-head">
+      <div id="unlocked-slot"></div>
+      <div class="kicker">Step 3 of 3 · Export</div>
+      <h2 class="h2" id="export-title">Looking good — ready to post?</h2>
+      <p class="sub" id="export-sub">Your free download includes a small SplitFace watermark. Go Pro once and it's gone forever — plus full-HD exports.</p>
+    </section>
+
+    <div class="export-layout">
+      <!-- Preview -->
+      <div class="export-preview-card">
+        <div class="cap">
+          <h3>Export preview</h3>
+          <span class="format-chip" id="export-chip">PNG · 1080 × 1350 · Free</span>
+        </div>
+        <div class="export-img">
+          <img id="export-img" alt="Final split-face export preview">
+          <span class="hd-chip" id="export-hdchip" hidden>HD · NO WATERMARK</span>
+        </div>
+        <div class="export-actions">
+          <button type="button" class="btn btn-ghost" id="btn-back-editor">← Back to editor</button>
+          <button type="button" class="btn btn-primary btn-lg" id="btn-download">⬇ Download free</button>
+        </div>
+      </div>
+
+      <!-- Upgrade / unlocked -->
+      <div id="export-side"></div>
+    </div>
+
+    <footer class="mini-footer">SplitFace · your photos never leave this device</footer>
+  </div>
+</main>
+
+<!-- Hidden file inputs -->
+<input type="file" id="file-a" accept="image/*" hidden>
+<input type="file" id="file-b" accept="image/*" hidden>
+
+<!-- Toasts -->
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
