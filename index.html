@@ -293,28 +293,42 @@ footer{background:var(--deep);color:rgba(255,255,255,.7);padding:56px 0 34px}
             <span class="demo-tag left">Classic split</span>
           </div>
         </div>
-        <div class="hero-slide" data-label="Soft seam blend">
-          <div class="demo-frame static">
-            <img src="design/mockups/assets/merge-duo-soft.jpg" alt="Man and boy split-face merge with a soft blended seam">
-            <span class="demo-tag left">Soft seam</span>
+        <div class="hero-slide" data-label="Parent & child">
+          <div class="demo-frame hero-slider" role="slider" tabindex="0" aria-label="Interactive split-face demo, parent and child. Drag to move the split line." aria-valuemin="2" aria-valuemax="98" aria-valuenow="50">
+            <img src="design/mockups/assets/sample-parent.jpg" alt="Older man photo">
+            <img class="demo-top" src="design/mockups/assets/sample-child.jpg" alt="Boy photo">
+            <div class="demo-seam"></div>
+            <div class="demo-handle">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-5 6 5 6M15 6l5 6-5 6"/></svg>
+            </div>
+            <span class="demo-tag left">Photo A</span>
+            <span class="demo-tag right">Photo B</span>
+            <span class="demo-hint">Drag the line</span>
           </div>
         </div>
-        <div class="hero-slide" data-label="Sides flipped">
-          <div class="demo-frame static">
-            <img src="design/mockups/assets/merge-duo-flipped.jpg" alt="Man and boy split-face merge with the sides flipped">
-            <span class="demo-tag right">Flipped</span>
+        <div class="hero-slide" data-label="Two generations">
+          <div class="demo-frame hero-slider" role="slider" tabindex="0" aria-label="Interactive split-face demo, older and younger man. Drag to move the split line." aria-valuemin="2" aria-valuemax="98" aria-valuenow="50">
+            <img src="design/mockups/assets/sample-parent.jpg" alt="Older man photo">
+            <img class="demo-top" src="design/mockups/assets/sample-man.jpg" alt="Younger man photo">
+            <div class="demo-seam"></div>
+            <div class="demo-handle">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-5 6 5 6M15 6l5 6-5 6"/></svg>
+            </div>
+            <span class="demo-tag left">Photo A</span>
+            <span class="demo-tag right">Photo B</span>
+            <span class="demo-hint">Drag the line</span>
           </div>
         </div>
         <div class="rotator-ui">
           <span class="rotator-label" id="rotatorLabel">Classic split</span>
           <span class="rotator-dots" id="rotatorDots">
             <button type="button" class="on" data-i="0" aria-label="Show classic split"></button>
-            <button type="button" data-i="1" aria-label="Show soft seam blend"></button>
-            <button type="button" data-i="2" aria-label="Show sides flipped"></button>
+            <button type="button" data-i="1" aria-label="Show parent and child"></button>
+            <button type="button" data-i="2" aria-label="Show two generations"></button>
           </span>
         </div>
       </div>
-      <p class="demo-caption">A live merge, right on the homepage. <strong>Made with the app itself.</strong></p>
+      <p class="demo-caption">Drag the split line on any slide. <strong>Every merge made with the app itself.</strong></p>
     </div>
   </div>
 </header>
@@ -584,6 +598,42 @@ footer{background:var(--deep);color:rgba(255,255,255,.7);padding:56px 0 34px}
     });
     rot.addEventListener('pointerenter', stop);
     rot.addEventListener('pointerleave', start);
+    /* Draggable split slider on each interactive hero slide */
+    rot.querySelectorAll('.hero-slider').forEach(function (sl) {
+      var top = sl.querySelector('.demo-top');
+      var seam = sl.querySelector('.demo-seam');
+      var handle = sl.querySelector('.demo-handle');
+      var dragging = false;
+      function setSplit(pct) {
+        pct = Math.max(2, Math.min(98, pct));
+        top.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+        seam.style.left = pct + '%';
+        handle.style.left = pct + '%';
+        sl.setAttribute('aria-valuenow', Math.round(pct));
+      }
+      function pctFromEvent(e) {
+        var r = sl.getBoundingClientRect();
+        return ((e.clientX - r.left) / r.width) * 100;
+      }
+      sl.addEventListener('pointerdown', function (e) {
+        dragging = true;
+        stop(); // pause rotation while the user drags
+        try { sl.setPointerCapture(e.pointerId); } catch (err) {}
+        setSplit(pctFromEvent(e));
+      });
+      sl.addEventListener('pointermove', function (e) {
+        if (dragging) setSplit(pctFromEvent(e));
+      });
+      ['pointerup', 'pointercancel'].forEach(function (ev) {
+        sl.addEventListener(ev, function () { dragging = false; start(); });
+      });
+      sl.addEventListener('keydown', function (e) {
+        var cur = parseFloat(sl.getAttribute('aria-valuenow')) || 50;
+        if (e.key === 'ArrowLeft') { setSplit(cur - 5); e.preventDefault(); }
+        if (e.key === 'ArrowRight') { setSplit(cur + 5); e.preventDefault(); }
+      });
+      setSplit(50);
+    });
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) stop(); else start();
     });
