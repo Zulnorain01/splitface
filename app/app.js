@@ -597,35 +597,29 @@ function drawWatermark(ctx, W, H) {
   ctx.restore();
 }
 
-/* Faint diagonal "SplitFace" tiling across the whole image (free tier),
-   in two crossing diagonal directions. Baked into the export pixels —
-   survives cropping the corner pill, and can't be removed via Inspect
-   Element since it's in the PNG itself. */
+/* Two light diagonal "SplitFace" marks (free tier) — one upper, one lower —
+   so no clean crop is left, without flooding the image. Baked into the
+   export pixels — can't be removed via Inspect Element since it's in the
+   PNG itself. */
 function drawTiledWatermark(ctx, W, H) {
   ctx.save();
   ctx.fillStyle = '#FFFFFF';
-  const fs = Math.max(14, Math.round(W * 0.045));
+  ctx.globalAlpha = 0.15;
+  const fs = Math.max(16, Math.round(W * 0.075));
   ctx.font = "800 " + fs + "px 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const label = 'SplitFace \u2726 ';
-  const tw = ctx.measureText(label).width;
-  const stepX = tw * 1.2, stepY = fs * 3.4;
-  ctx.translate(W / 2, H / 2);
-  const diag = Math.sqrt(W * W + H * H);
-  const tile = (alpha) => {
-    ctx.globalAlpha = alpha;
-    let row = 0;
-    for (let y = -diag / 2; y < diag / 2; y += stepY, row++) {
-      const off = (row % 2) * stepX / 2;
-      for (let x = -diag / 2 - stepX; x < diag / 2 + stepX; x += stepX) {
-        ctx.fillText(label, x + off, y);
-      }
-    }
-  };
-  ctx.rotate(-Math.PI / 7);
-  tile(0.16);
-  ctx.rotate(Math.PI / 3.5); // second crossing diagonal — no clean crop left
-  tile(0.07);
+  const spots = [
+    { x: W * 0.30, y: H * 0.24 },
+    { x: W * 0.72, y: H * 0.72 }
+  ];
+  for (const s of spots) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(-Math.PI / 8);
+    ctx.fillText('SplitFace \u2726', 0, 0);
+    ctx.restore();
+  }
   ctx.restore();
 }
 
