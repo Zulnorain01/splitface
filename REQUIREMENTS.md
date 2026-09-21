@@ -18,7 +18,7 @@ Everything else is secondary. If this core loop is not instant and delightful, t
 2. User uploads two photos (file picker or drag & drop).
 3. App detects faces client-side, auto-aligns both faces (eyes level, scaled to the same face size), and shows the merged preview with the split line centered.
 4. User drags the split line horizontally; preview updates live. Optional: toggle which side shows Photo A vs B ("flip sides").
-5. User clicks Export → full-res image renders to a canvas → free export downloads with a small "Made with SplitFace" watermark; or user clicks "Remove watermark + HD — $4.99 one-time" (payment placeholder link) — after "purchase" the paywall is informational only in this MVP (Muhammad wires the real link; unlocked state is stubbed via a query param / local toggle so he can see the unlocked flow).
+5. User clicks Export → full-res image renders to a canvas → free export downloads as 480p PNG with strong baked-in watermarks (corner "Made with SplitFace" pill, two crossing diagonal "SplitFace" tilings, and a soft white "SplitFace — Go Pro to remove" center mark — baked into the PNG pixels and the live preview, so screenshots and Inspect Element can't remove them); or user clicks "Remove watermark + HD/4K — $4.99 one-time" (payment placeholder link) → after purchase they get a license key (`SF-XXXX-XXXX-XXXX`) that unlocks Pro (HD 2160×2700 + 4K 3240×4050, no watermark). Muhammad wires the real payment link and delivers keys.
 
 ### Flow 2 — Sample photos
 - Two buttons: "Use sample photos" loads two bundled sample portraits so the user can try instantly with zero friction.
@@ -49,5 +49,5 @@ Everything else is secondary. If this core loop is not instant and delightful, t
 - Styling: match CareerOS/HireRank shared design language (see landing phase); consumer green brand colorway.
 
 ## Monetization (MVP)
-- Free: watermarked export.
+- Free: 480p export with strong baked-in watermarks (corner pill, crossing diagonal tilings, center "SplitFace — Go Pro to remove" in light white) so the image isn't usable until Pro.
 - $4.99 one-time: removes watermark + HD export. Button links to `PAYMENT_URL` placeholder defined once in `app/config.js` with a comment for Muhammad.

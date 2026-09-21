@@ -510,6 +510,7 @@ function queueRender() {
     // pixels), so a screenshot of the editor can't produce a clean image.
     if (!isPro()) {
       drawTiledWatermark(ctx, el.mergeCanvas.width, el.mergeCanvas.height);
+      drawCenterWatermark(ctx, el.mergeCanvas.width, el.mergeCanvas.height);
       drawWatermark(ctx, el.mergeCanvas.width, el.mergeCanvas.height);
     }
   });
@@ -596,12 +597,12 @@ function drawWatermark(ctx, W, H) {
   ctx.restore();
 }
 
-/* Faint diagonal "SplitFace" tiling across the whole image (free tier).
-   Baked into the export pixels — survives cropping the corner pill,
-   and can't be removed via Inspect Element since it's in the PNG itself. */
+/* Faint diagonal "SplitFace" tiling across the whole image (free tier),
+   in two crossing diagonal directions. Baked into the export pixels —
+   survives cropping the corner pill, and can't be removed via Inspect
+   Element since it's in the PNG itself. */
 function drawTiledWatermark(ctx, W, H) {
   ctx.save();
-  ctx.globalAlpha = 0.10;
   ctx.fillStyle = '#FFFFFF';
   const fs = Math.max(14, Math.round(W * 0.045));
   ctx.font = "800 " + fs + "px 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
@@ -610,15 +611,44 @@ function drawTiledWatermark(ctx, W, H) {
   const tw = ctx.measureText(label).width;
   const stepX = tw * 1.2, stepY = fs * 3.4;
   ctx.translate(W / 2, H / 2);
-  ctx.rotate(-Math.PI / 7);
   const diag = Math.sqrt(W * W + H * H);
-  let row = 0;
-  for (let y = -diag / 2; y < diag / 2; y += stepY, row++) {
-    const off = (row % 2) * stepX / 2;
-    for (let x = -diag / 2 - stepX; x < diag / 2 + stepX; x += stepX) {
-      ctx.fillText(label, x + off, y);
+  const tile = (alpha) => {
+    ctx.globalAlpha = alpha;
+    let row = 0;
+    for (let y = -diag / 2; y < diag / 2; y += stepY, row++) {
+      const off = (row % 2) * stepX / 2;
+      for (let x = -diag / 2 - stepX; x < diag / 2 + stepX; x += stepX) {
+        ctx.fillText(label, x + off, y);
+      }
     }
-  }
+  };
+  ctx.rotate(-Math.PI / 7);
+  tile(0.16);
+  ctx.rotate(Math.PI / 3.5); // second crossing diagonal — no clean crop left
+  tile(0.07);
+  ctx.restore();
+}
+
+/* Center watermark in very light color (free tier): a soft white
+   "SplitFace" across the middle of the face with a small "Go Pro to
+   remove" line beneath. Baked into the PNG pixels — screenshots and
+   downloads carry it, and it can't be deleted via Inspect Element. */
+function drawCenterWatermark(ctx, W, H) {
+  ctx.save();
+  const fs = Math.max(24, Math.round(W * 0.10));
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // soft glow so it reads over dark and light faces alike
+  ctx.shadowColor = 'rgba(255,255,255,0.5)';
+  ctx.shadowBlur = fs * 0.22;
+  ctx.font = "800 " + fs + "px 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = 'rgba(255,255,255,0.34)';
+  ctx.fillText('SplitFace', W / 2, H * 0.44);
+  ctx.shadowBlur = 0;
+  const fs2 = Math.max(12, Math.round(W * 0.034));
+  ctx.font = "700 " + fs2 + "px 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = 'rgba(255,255,255,0.30)';
+  ctx.fillText('Go Pro to remove', W / 2, H * 0.44 + fs * 0.82);
   ctx.restore();
 }
 
@@ -631,6 +661,7 @@ function renderExportCanvas(kind) {
   renderMerge(ctx, W, H);
   if (!S.pro) {
     drawTiledWatermark(ctx, W, H);
+    drawCenterWatermark(ctx, W, H);
     drawWatermark(ctx, W, H);
   }
   return c;
@@ -699,7 +730,7 @@ function buildExport() {
         '<p class="key-hint">Keys are emailed with your receipt right after purchase.</p>' +
       '</details>' +
       '<div class="free-card">' +
-        '<p><b>Happy with the free version?</b> The watermark is tiny and sits in the corner — most people never notice it.</p>' +
+        '<p><b>Happy with the free version?</b> Free downloads carry a visible SplitFace watermark across the image — Go Pro once and it\'s gone forever.</p>' +
         '<button type="button" class="btn btn-ghost btn-block" id="btn-download-free2">Download free version</button>' +
       '</div>';
     $('btn-download-free2').addEventListener('click', () => el.btnDownload.click());
