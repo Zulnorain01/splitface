@@ -932,4 +932,4 @@ if (document.readyState === 'loading') {
 
 /* QA hook: expose internals for automated verification.
    Harmless — everything here is already client-side and readable. */
-window.__splitface = { S, renderMerge, setVariant, isPro };
+window.__splitface = { S, renderMerge, drawAligned, setVariant, isPro, ingestPhoto };
