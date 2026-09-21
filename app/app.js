@@ -81,7 +81,7 @@ const el = {
   views: { upload: $('view-upload'), editor: $('view-editor'), export: $('view-export') },
   slots: { A: $('slot-a'), B: $('slot-b') },
   fileA: $('file-a'), fileB: $('file-b'),
-  btnSample: $('btn-sample'),
+  btnSample: $('btn-sample'), btnSample2: $('btn-sample2'),
   continueRow: $('continue-row'), btnContinue: $('btn-continue'),
   toasts: $('toasts'),
   // editor
@@ -269,18 +269,21 @@ function openPicker(slot) {
   (slot === 'A' ? el.fileA : el.fileB).click();
 }
 
-async function loadSamplePhotos() {
-  const btn = el.btnSample;
+async function loadSamplePhotos(pair) {
+  const btn = pair === 'duo' ? el.btnSample2 : el.btnSample;
+  const files = pair === 'duo'
+    ? ['assets/sample-man.jpg', 'assets/sample-boy.jpg', 'sample-man.jpg', 'sample-boy.jpg']
+    : ['assets/sample-parent.jpg', 'assets/sample-child.jpg', 'sample-parent.jpg', 'sample-child.jpg'];
   const label = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '⏳ Loading samples…';
   try {
     const [a, b] = await Promise.all([
-      fetch('assets/sample-parent.jpg').then((r) => { if (!r.ok) throw new Error('sample A'); return r.blob(); }),
-      fetch('assets/sample-child.jpg').then((r) => { if (!r.ok) throw new Error('sample B'); return r.blob(); }),
+      fetch(files[0]).then((r) => { if (!r.ok) throw new Error('sample A'); return r.blob(); }),
+      fetch(files[1]).then((r) => { if (!r.ok) throw new Error('sample B'); return r.blob(); }),
     ]);
-    await ingestPhoto('A', a, 'sample-parent.jpg');
-    await ingestPhoto('B', b, 'sample-child.jpg');
+    await ingestPhoto('A', a, files[2]);
+    await ingestPhoto('B', b, files[3]);
   } catch (err) {
     toast('error', '<b>Couldn\'t load the sample photos.</b> Please check your connection and try again.');
   } finally {
@@ -849,7 +852,8 @@ function bindUpload() {
     });
   }
 
-  el.btnSample.addEventListener('click', loadSamplePhotos);
+  el.btnSample.addEventListener('click', () => loadSamplePhotos('family'));
+  el.btnSample2.addEventListener('click', () => loadSamplePhotos('duo'));
   el.btnContinue.addEventListener('click', enterEditor);
 
   // Delegated clicks for dynamically-rendered buttons
@@ -925,3 +929,7 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+/* QA hook: expose internals for automated verification.
+   Harmless — everything here is already client-side and readable. */
+window.__splitface = { S, renderMerge, setVariant, isPro };

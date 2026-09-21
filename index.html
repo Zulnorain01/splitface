@@ -288,27 +288,20 @@ footer{background:var(--deep);color:rgba(255,255,255,.7);padding:56px 0 34px}
     <div class="reveal reveal-d2">
       <div class="hero-rotator" id="heroRotator">
         <div class="hero-slide active" data-label="Classic split">
-          <div class="demo-frame" id="heroDemo" role="slider" aria-label="Interactive split-face demo. Drag to move the split line." aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
-            <img src="design/mockups/assets/sample-parent.jpg" alt="First photo">
-            <img class="demo-top" id="heroDemoTop" src="design/mockups/assets/sample-child.jpg" alt="Second photo">
-            <div class="demo-seam" id="heroDemoSeam"></div>
-            <div class="demo-handle" id="heroDemoHandle">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-5 6 5 6M15 6l5 6-5 6"/></svg>
-            </div>
-            <span class="demo-tag left">Photo A</span>
-            <span class="demo-tag right">Photo B</span>
-            <span class="demo-hint">Drag the line — this is the real merge</span>
+          <div class="demo-frame static">
+            <img src="design/mockups/assets/merge-preview.jpg" alt="Woman split-face merge, classic split">
+            <span class="demo-tag left">Classic split</span>
           </div>
         </div>
         <div class="hero-slide" data-label="Soft seam blend">
           <div class="demo-frame static">
-            <img src="design/mockups/assets/merge-preview.jpg" alt="Split-face merge with a soft blended seam">
+            <img src="design/mockups/assets/merge-duo-soft.jpg" alt="Man and boy split-face merge with a soft blended seam">
             <span class="demo-tag left">Soft seam</span>
           </div>
         </div>
         <div class="hero-slide" data-label="Sides flipped">
           <div class="demo-frame static">
-            <img src="design/mockups/assets/merge-preview-flipped.jpg" alt="Split-face merge with the sides flipped">
+            <img src="design/mockups/assets/merge-duo-flipped.jpg" alt="Man and boy split-face merge with the sides flipped">
             <span class="demo-tag right">Flipped</span>
           </div>
         </div>
@@ -566,43 +559,6 @@ footer{background:var(--deep);color:rgba(255,255,255,.7);padding:56px 0 34px}
     });
   });
 
-  /* --- Hero split-slider demo --- */
-  var demo = document.getElementById('heroDemo');
-  var top = document.getElementById('heroDemoTop');
-  var seam = document.getElementById('heroDemoSeam');
-  var handle = document.getElementById('heroDemoHandle');
-  var dragging = false;
-
-  function setSplit(pct) {
-    pct = Math.max(2, Math.min(98, pct));
-    top.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
-    seam.style.left = pct + '%';
-    handle.style.left = pct + '%';
-    demo.setAttribute('aria-valuenow', Math.round(pct));
-  }
-  function pctFromEvent(e) {
-    var r = demo.getBoundingClientRect();
-    var x = (e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX) - r.left;
-    return (x / r.width) * 100;
-  }
-  demo.addEventListener('pointerdown', function (e) {
-    dragging = true;
-    demo.setPointerCapture(e.pointerId);
-    setSplit(pctFromEvent(e));
-  });
-  demo.addEventListener('pointermove', function (e) {
-    if (dragging) setSplit(pctFromEvent(e));
-  });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
-    demo.addEventListener(ev, function () { dragging = false; });
-  });
-  demo.addEventListener('keydown', function (e) {
-    var cur = parseFloat(demo.getAttribute('aria-valuenow')) || 50;
-    if (e.key === 'ArrowLeft') { setSplit(cur - 5); e.preventDefault(); }
-    if (e.key === 'ArrowRight') { setSplit(cur + 5); e.preventDefault(); }
-  });
-  setSplit(50);
-
   /* --- Hero variant rotator: cycles the three merge styles every 5s --- */
   (function () {
     var rot = document.getElementById('heroRotator');
@@ -628,7 +584,6 @@ footer{background:var(--deep);color:rgba(255,255,255,.7);padding:56px 0 34px}
     });
     rot.addEventListener('pointerenter', stop);
     rot.addEventListener('pointerleave', start);
-    demo.addEventListener('pointerdown', stop); // don't fight the user while they drag the demo
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) stop(); else start();
     });
