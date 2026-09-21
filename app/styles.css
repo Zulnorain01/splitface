@@ -95,6 +95,15 @@ a { color: inherit; }
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; }
 .brand-home { text-decoration: none; cursor: pointer; }
+
+/* License key unlock (free export panel) */
+.key-details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.key-details summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--muted)}
+.key-details summary:hover{color:var(--ink)}
+.key-row{display:flex;gap:8px;margin-top:10px}
+.key-input{flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:14px;letter-spacing:.06em;text-transform:uppercase;background:#fff;color:var(--ink)}
+.key-input:focus{outline:none;border-color:var(--green-500)}
+.key-hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
 .brand-mark {
   width: 34px; height: 34px; border-radius: 50%;
   background:

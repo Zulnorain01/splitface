@@ -31,7 +31,7 @@ Everything else is secondary. If this core loop is not instant and delightful, t
 - [ ] Faces are detected automatically (client-side, no server, no API keys); if no face is found in a photo, show a clear hint ("We couldn't find a face — try a clearer photo") and let the user continue with manual positioning (center crop fallback).
 - [ ] Alignment normalizes both faces (same scale/orientation via eye landmarks) so the merge looks plausible without manual tweaking.
 - [ ] Split line is draggable (mouse + touch) with live preview; works on desktop and mobile viewports.
-- [ ] Export downloads a PNG sized for sharing (1080×1350 portrait-ish or source max). Free export carries a small corner watermark; the $4.99 button opens the configured payment link (placeholder clearly marked in code, e.g. `PAYMENT_URL` in one config file).
+- [x] Export downloads a PNG (384×480 free with baked-in watermark / 2160×2700 HD + 3240×4050 4K Pro, no watermark). The $4.99 button opens the configured payment link (placeholder clearly marked in code, e.g. `PAYMENT_URL` in one config file). Pro unlocks via license keys generated with `node tools/gen-key.mjs`.
 - [ ] No backend, no paid APIs, no secrets in the repo. All processing is client-side.
 - [ ] Page works offline after first load (all libs bundled locally — no CDN-only dependencies at runtime for the core loop; CDN with local fallback is acceptable if bundled copy exists in repo).
 - [ ] No console errors during the happy path on desktop and mobile viewports.

@@ -4,7 +4,7 @@
    - Face detection via vendored MediaPipe BlazeFace (wasm,
      single-threaded fallback — no COOP/COEP headers needed)
    - Eye-based auto-alignment, draggable split line, flip sides
-   - PNG export (1080x1350 free / 2160x2700 pro) with watermark
+   - PNG export (384x480 free watermarked / 2160x2700 HD + 3240x4050 4K pro)
    ============================================================ */
 
 'use strict';
@@ -30,7 +30,7 @@ const S = {
   photos: { A: null, B: null }, // {canvas,w,h,name,thumb,faceStatus,eyes,centerCrop,noFaceDismissed}
   split: 0.5,
   flipped: false,
-  pro: new URLSearchParams(window.location.search).get('pro') === '1',
+  pro: false, // set at boot from license key — see isPro(). Never trust a cached flag at export time.
   detector: null,
   faceEngine: 'loading', // 'loading' | 'ready' | 'failed'
   enginePromise: null,
@@ -42,6 +42,36 @@ const MAX_DIM = 2048;               // downscale very large images to this max s
 const LARGE_FILE_BYTES = 12 * 1024 * 1024; // warn toast above this size
 const EYE_DIST_FRAC = 0.30;         // canonical inter-eye distance (fraction of canvas width)
 const EYE_Y_FRAC = 0.40;            // canonical eye-line height (fraction of canvas height)
+
+/* ---------------- Pro license keys ----------------
+   Pro is unlocked with a license key (SF-XXXX-XXXX-XXXX) issued
+   after purchase — validated locally on EVERY export, never via a
+   URL flag. Generate keys with:  node tools/gen-key.mjs
+   NOTE: this is client-side gating. It stops casual sharing, URL
+   tricks and Inspect-Element games, but a determined user with
+   devtools can bypass any client-side check. Bulletproof
+   enforcement would need server-side key validation at export. */
+const KEY_SALT = 'splitface-pro-v1';
+const KEY_ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function keyChecksum(body) {
+  let h = 0;
+  const s = body + KEY_SALT;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) >>> 0;
+  let code = '', x = h;
+  for (let i = 0; i < 4; i++) { code += KEY_ALPHA[x % KEY_ALPHA.length]; x = Math.floor(x / KEY_ALPHA.length); }
+  return code;
+}
+function validateKey(key) {
+  if (!key) return false;
+  let clean = String(key).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (clean.startsWith('SF')) clean = clean.slice(2); // drop the "SF-" display prefix
+  if (clean.length !== 12) return false;
+  return clean.slice(8) === keyChecksum(clean.slice(0, 8));
+}
+function isPro() {
+  try { return validateKey(localStorage.getItem('splitface_key') || ''); }
+  catch (e) { return false; }
+}
 
 /* ---------------- DOM ---------------- */
 const $ = (id) => document.getElementById(id);
@@ -474,7 +504,14 @@ function queueRender() {
   requestAnimationFrame(() => {
     S.renderQueued = false;
     if (!S.photos.A || !S.photos.B) return;
-    renderMerge(el.mergeCanvas.getContext('2d'), el.mergeCanvas.width, el.mergeCanvas.height);
+    const ctx = el.mergeCanvas.getContext('2d');
+    renderMerge(ctx, el.mergeCanvas.width, el.mergeCanvas.height);
+    // Free tier: the live preview itself carries the watermark (baked into
+    // pixels), so a screenshot of the editor can't produce a clean image.
+    if (!isPro()) {
+      drawTiledWatermark(ctx, el.mergeCanvas.width, el.mergeCanvas.height);
+      drawWatermark(ctx, el.mergeCanvas.width, el.mergeCanvas.height);
+    }
   });
 }
 
@@ -520,8 +557,9 @@ function bindSplit() {
 }
 
 /* ---------------- Export ---------------- */
-function exportSize() {
-  return S.pro ? { w: 2160, h: 2700 } : { w: 1080, h: 1350 };
+function exportSize(kind) {
+  if (isPro()) return kind === '4k' ? { w: 3240, h: 4050 } : { w: 2160, h: 2700 };
+  return { w: 384, h: 480 }; // free tier: 480p, watermark baked into the pixels
 }
 
 function roundRectPath(ctx, x, y, w, h, r) {
@@ -558,24 +596,55 @@ function drawWatermark(ctx, W, H) {
   ctx.restore();
 }
 
-function renderExportCanvas() {
-  const { w: W, h: H } = exportSize();
+/* Faint diagonal "SplitFace" tiling across the whole image (free tier).
+   Baked into the export pixels — survives cropping the corner pill,
+   and can't be removed via Inspect Element since it's in the PNG itself. */
+function drawTiledWatermark(ctx, W, H) {
+  ctx.save();
+  ctx.globalAlpha = 0.10;
+  ctx.fillStyle = '#FFFFFF';
+  const fs = Math.max(14, Math.round(W * 0.045));
+  ctx.font = "800 " + fs + "px 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+  ctx.textBaseline = 'middle';
+  const label = 'SplitFace \u2726 ';
+  const tw = ctx.measureText(label).width;
+  const stepX = tw * 1.2, stepY = fs * 3.4;
+  ctx.translate(W / 2, H / 2);
+  ctx.rotate(-Math.PI / 7);
+  const diag = Math.sqrt(W * W + H * H);
+  let row = 0;
+  for (let y = -diag / 2; y < diag / 2; y += stepY, row++) {
+    const off = (row % 2) * stepX / 2;
+    for (let x = -diag / 2 - stepX; x < diag / 2 + stepX; x += stepX) {
+      ctx.fillText(label, x + off, y);
+    }
+  }
+  ctx.restore();
+}
+
+function renderExportCanvas(kind) {
+  S.pro = isPro(); // re-validate on every export — never trust a cached flag
+  const { w: W, h: H } = exportSize(kind);
   const c = document.createElement('canvas');
   c.width = W; c.height = H;
-  renderMerge(c.getContext('2d'), W, H);
-  if (!S.pro) drawWatermark(c.getContext('2d'), W, H);
+  const ctx = c.getContext('2d');
+  renderMerge(ctx, W, H);
+  if (!S.pro) {
+    drawTiledWatermark(ctx, W, H);
+    drawWatermark(ctx, W, H);
+  }
   return c;
 }
 
 function buildExport() {
-  const canvas = renderExportCanvas();
+  const canvas = renderExportCanvas('hd');
   canvas.toBlob((blob) => {
     if (S.exportURL) URL.revokeObjectURL(S.exportURL);
     S.exportURL = URL.createObjectURL(blob);
     el.exportImg.src = S.exportURL;
   }, 'image/png');
 
-  const { w, h } = exportSize();
+  const { w, h } = exportSize('hd');
   if (S.pro) {
     el.exportChip.textContent = 'PNG · ' + w + ' × ' + h + ' · HD';
     el.exportChip.classList.add('hd');
@@ -594,17 +663,19 @@ function buildExport() {
         '<h4>📤 Ready to post?</h4>' +
         '<p class="desc">Save the PNG, then upload it to TikTok or Instagram as a photo post or carousel.</p>' +
         '<div class="stat-row"><span class="k">Format</span><span class="v">PNG</span></div>' +
-        '<div class="stat-row"><span class="k">Size</span><span class="v">' + w + ' × ' + h + '</span></div>' +
+        '<div class="stat-row"><span class="k">Size</span><span class="v">' + w + ' × ' + h + ' · HD</span></div>' +
         '<div class="stat-row"><span class="k">Watermark</span><span class="v ok">None ✓</span></div>' +
       '</div>' +
+      '<button type="button" class="btn btn-outline btn-block mb-16" id="btn-dl-4k">⬇ Download 4K (3240 × 4050)</button>' +
       '<button type="button" class="btn btn-dark btn-block" id="btn-another">✨ Make another merge</button>';
     $('btn-another').addEventListener('click', resetApp);
+    $('btn-dl-4k').addEventListener('click', () => downloadExport('4k'));
   } else {
     el.exportChip.textContent = 'PNG · ' + w + ' × ' + h + ' · Free';
     el.exportChip.classList.remove('hd');
     el.exportHdChip.hidden = true;
     el.exportTitle.textContent = 'Looking good — ready to post?';
-    el.exportSub.textContent = 'Your free download includes a small SplitFace watermark. Go Pro once and it\'s gone forever — plus full-HD exports.';
+    el.exportSub.textContent = 'Your free download is 480p with the SplitFace watermark baked in. Go Pro once — watermark gone, HD + 4K, yours forever.';
     el.btnDownload.innerHTML = '⬇ Download free';
     el.unlockedSlot.innerHTML = '';
     el.exportSide.innerHTML =
@@ -615,13 +686,18 @@ function buildExport() {
         '<p class="blurb">One payment. No subscription. Every future merge included.</p>' +
         '<ul class="upgrade-list">' +
           '<li><span class="tick" aria-hidden="true">✓</span>No watermark on any export</li>' +
-          '<li><span class="tick" aria-hidden="true">✓</span>Full-HD 2160 × 2700 downloads</li>' +
+          '<li><span class="tick" aria-hidden="true">✓</span>HD 2160 × 2700 + 4K 3240 × 4050 downloads</li>' +
           '<li><span class="tick" aria-hidden="true">✓</span>Priority face-detection engine</li>' +
           '<li><span class="tick" aria-hidden="true">✓</span>Unlimited merges, forever</li>' +
         '</ul>' +
         '<button type="button" class="btn btn-upgrade" data-gopro>Remove watermark + HD</button>' +
         '<div class="secure">🔒 Secure checkout · 30-day money-back guarantee</div>' +
       '</div>' +
+      '<details class="key-details">' +
+        '<summary>Have a license key?</summary>' +
+        '<div class="key-row"><input id="key-input" class="key-input" placeholder="SF-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" aria-label="License key"><button id="key-apply" class="btn btn-dark btn-sm" type="button">Unlock</button></div>' +
+        '<p class="key-hint">Keys are emailed with your receipt right after purchase.</p>' +
+      '</details>' +
       '<div class="free-card">' +
         '<p><b>Happy with the free version?</b> The watermark is tiny and sits in the corner — most people never notice it.</p>' +
         '<button type="button" class="btn btn-ghost btn-block" id="btn-download-free2">Download free version</button>' +
@@ -630,13 +706,13 @@ function buildExport() {
   }
 }
 
-function downloadExport() {
-  const canvas = renderExportCanvas();
+function downloadExport(kind) {
+  const canvas = renderExportCanvas(kind || 'hd'); // re-validates the license key inside
   canvas.toBlob((blob) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = S.pro ? 'splitface-merge-hd.png' : 'splitface-merge.png';
+    a.download = S.pro ? (kind === '4k' ? 'splitface-merge-4k.png' : 'splitface-merge-hd.png') : 'splitface-merge.png';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -646,11 +722,12 @@ function downloadExport() {
 
 /* ---------------- Go Pro ---------------- */
 function goPro() {
-  if (S.pro) return;
+  if (isPro()) return;
   if (!PAYMENT_URL || PAYMENT_URL.indexOf('example.com') !== -1) {
     toast('warn',
       '<b>Payment link not set yet.</b> Paste your Gumroad / Lemon Squeezy checkout URL as ' +
-      '<b>PAYMENT_URL</b> in <b>app/config.js</b>. Preview the unlocked flow with <b>?pro=1</b>.',
+      '<b>PAYMENT_URL</b> in <b>app/config.js</b>. After purchase, buyers unlock Pro with the ' +
+      'license key from their receipt — generate keys with <b>node tools/gen-key.mjs</b>.',
       9000);
     return;
   }
@@ -743,7 +820,22 @@ function bindEditor() {
 
 function bindExport() {
   el.btnBackEditor.addEventListener('click', () => { showView('editor'); queueRender(); });
-  el.btnDownload.addEventListener('click', downloadExport);
+  el.btnDownload.addEventListener('click', () => downloadExport());
+  // License-key unlock (the key form is injected dynamically in buildExport)
+  document.addEventListener('click', (e) => {
+    if (!e.target || e.target.id !== 'key-apply') return;
+    const input = $('key-input');
+    const k = input ? input.value : '';
+    if (validateKey(k)) {
+      try { localStorage.setItem('splitface_key', String(k).trim().toUpperCase()); } catch (err) {}
+      S.pro = true;
+      applyProUI();
+      buildExport();
+      toast('ok', '<b>Pro unlocked.</b> Watermark-free HD + 4K exports on every merge from now on.');
+    } else {
+      toast('warn', '<b>Invalid key.</b> Check the key from your receipt email and try again.');
+    }
+  });
 }
 
 /* ---------------- Init ---------------- */
@@ -754,6 +846,7 @@ function init() {
   bindUpload();
   bindEditor();
   bindExport();
+  S.pro = isPro(); // unlock from stored license key (re-validated on every export)
   if (S.pro) applyProUI();
   // Offline support: cache the app shell so the page keeps
   // working offline after the first load (no CDN deps at runtime).
