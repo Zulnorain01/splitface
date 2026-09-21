@@ -117,6 +117,19 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
 .demo-hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:12.5px;font-weight:700;color:#fff;background:rgba(11,36,28,.66);padding:8px 16px;border-radius:var(--pill);backdrop-filter:blur(6px);pointer-events:none;white-space:nowrap}
 .demo-caption{text-align:center;margin-top:16px;font-size:13.5px;color:rgba(255,255,255,.6)}
 .demo-caption strong{color:var(--lime-300)}
+/* ---------- Hero variant rotator (cycles every 5s) ---------- */
+.hero-rotator{position:relative;max-width:440px;margin-left:auto;width:100%}
+.hero-rotator .demo-frame{max-width:none;margin-left:0}
+.hero-slide{transition:opacity .6s ease}
+.hero-slide:not(.active){position:absolute;inset:0;opacity:0;pointer-events:none}
+.hero-slide.active{position:relative;opacity:1}
+.demo-frame.static{cursor:default}
+.rotator-ui{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:14px}
+.rotator-label{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--lime-300)}
+.rotator-dots{display:inline-flex;gap:8px}
+.rotator-dots button{width:9px;height:9px;border-radius:50%;border:0;background:rgba(255,255,255,.28);cursor:pointer;padding:0;transition:background .2s,transform .2s}
+.rotator-dots button.on{background:var(--lime-300);transform:scale(1.25)}
+.rotator-dots button:hover{background:rgba(255,255,255,.6)}
 @media(max-width:960px){
   .hero .wrap{grid-template-columns:1fr;padding:64px 28px 56px;gap:44px}
   .demo-frame{margin:0 auto}
@@ -273,16 +286,40 @@ footer{background:var(--deep);color:rgba(255,255,255,.7);padding:56px 0 34px}
       </div>
     </div>
     <div class="reveal reveal-d2">
-      <div class="demo-frame" id="heroDemo" role="slider" aria-label="Interactive split-face demo. Drag to move the split line." aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
-        <img src="design/mockups/assets/sample-parent.jpg" alt="First photo">
-        <img class="demo-top" id="heroDemoTop" src="design/mockups/assets/sample-child.jpg" alt="Second photo">
-        <div class="demo-seam" id="heroDemoSeam"></div>
-        <div class="demo-handle" id="heroDemoHandle">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-5 6 5 6M15 6l5 6-5 6"/></svg>
+      <div class="hero-rotator" id="heroRotator">
+        <div class="hero-slide active" data-label="Classic split">
+          <div class="demo-frame" id="heroDemo" role="slider" aria-label="Interactive split-face demo. Drag to move the split line." aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+            <img src="design/mockups/assets/sample-parent.jpg" alt="First photo">
+            <img class="demo-top" id="heroDemoTop" src="design/mockups/assets/sample-child.jpg" alt="Second photo">
+            <div class="demo-seam" id="heroDemoSeam"></div>
+            <div class="demo-handle" id="heroDemoHandle">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-5 6 5 6M15 6l5 6-5 6"/></svg>
+            </div>
+            <span class="demo-tag left">Photo A</span>
+            <span class="demo-tag right">Photo B</span>
+            <span class="demo-hint">Drag the line — this is the real merge</span>
+          </div>
         </div>
-        <span class="demo-tag left">Photo A</span>
-        <span class="demo-tag right">Photo B</span>
-        <span class="demo-hint">Drag the line — this is the real merge</span>
+        <div class="hero-slide" data-label="Soft seam blend">
+          <div class="demo-frame static">
+            <img src="design/mockups/assets/merge-preview.jpg" alt="Split-face merge with a soft blended seam">
+            <span class="demo-tag left">Soft seam</span>
+          </div>
+        </div>
+        <div class="hero-slide" data-label="Sides flipped">
+          <div class="demo-frame static">
+            <img src="design/mockups/assets/merge-preview-flipped.jpg" alt="Split-face merge with the sides flipped">
+            <span class="demo-tag right">Flipped</span>
+          </div>
+        </div>
+        <div class="rotator-ui">
+          <span class="rotator-label" id="rotatorLabel">Classic split</span>
+          <span class="rotator-dots" id="rotatorDots">
+            <button type="button" class="on" data-i="0" aria-label="Show classic split"></button>
+            <button type="button" data-i="1" aria-label="Show soft seam blend"></button>
+            <button type="button" data-i="2" aria-label="Show sides flipped"></button>
+          </span>
+        </div>
       </div>
       <p class="demo-caption">A live merge, right on the homepage. <strong>Made with the app itself.</strong></p>
     </div>
@@ -565,6 +602,38 @@ footer{background:var(--deep);color:rgba(255,255,255,.7);padding:56px 0 34px}
     if (e.key === 'ArrowRight') { setSplit(cur + 5); e.preventDefault(); }
   });
   setSplit(50);
+
+  /* --- Hero variant rotator: cycles the three merge styles every 5s --- */
+  (function () {
+    var rot = document.getElementById('heroRotator');
+    if (!rot) return;
+    var slides = rot.querySelectorAll('.hero-slide');
+    var label = document.getElementById('rotatorLabel');
+    var dots = document.getElementById('rotatorDots').querySelectorAll('button');
+    var idx = 0, timer = null;
+    function show(i) {
+      idx = (i + slides.length) % slides.length;
+      slides.forEach(function (s, k) { s.classList.toggle('active', k === idx); });
+      dots.forEach(function (d, k) {
+        d.classList.toggle('on', k === idx);
+        if (k === idx) d.setAttribute('aria-current', 'true');
+        else d.removeAttribute('aria-current');
+      });
+      label.textContent = slides[idx].getAttribute('data-label');
+    }
+    function start() { stop(); timer = setInterval(function () { show(idx + 1); }, 5000); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    dots.forEach(function (d) {
+      d.addEventListener('click', function () { show(parseInt(d.getAttribute('data-i'), 10)); start(); });
+    });
+    rot.addEventListener('pointerenter', stop);
+    rot.addEventListener('pointerleave', start);
+    demo.addEventListener('pointerdown', stop); // don't fight the user while they drag the demo
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop(); else start();
+    });
+    start();
+  })();
 
   /* --- Scroll reveal --- */
   if ('IntersectionObserver' in window) {

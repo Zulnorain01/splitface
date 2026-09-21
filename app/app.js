@@ -30,6 +30,8 @@ const S = {
   photos: { A: null, B: null }, // {canvas,w,h,name,thumb,faceStatus,eyes,centerCrop,noFaceDismissed}
   split: 0.5,
   flipped: false,
+  seam: 'soft', // 'soft' (feathered blend) | 'hard' (crisp classic split)
+  variant: 'soft', // 'classic' | 'soft' | 'flipped' — the Style segmented control
   pro: false, // set at boot from license key — see isPro(). Never trust a cached flag at export time.
   detector: null,
   faceEngine: 'loading', // 'loading' | 'ready' | 'failed'
@@ -413,11 +415,37 @@ function updateTags() {
 
 function flipSides() {
   S.flipped = !S.flipped;
+  S.variant = S.flipped ? 'flipped' : (S.seam === 'hard' ? 'classic' : 'soft');
   updateTags();
+  syncVariantUI();
   const t = el.flipThumbA.src;
   el.flipThumbA.src = el.flipThumbB.src;
   el.flipThumbB.src = t;
   queueRender();
+}
+
+/* Merge styles: Classic split (crisp seam), Soft seam (feathered blend),
+   Sides flipped (photos swapped). Mirrors the three landing-page variants. */
+function setVariant(v) {
+  S.variant = v;
+  if (v === 'classic') { S.flipped = false; S.seam = 'hard'; }
+  else if (v === 'soft') { S.flipped = false; S.seam = 'soft'; }
+  else { S.flipped = true; S.seam = 'soft'; }
+  updateTags();
+  syncVariantUI();
+  // keep the flip-side thumbnails in sync
+  const thumbs = S.flipped ? [S.photos.B.thumb, S.photos.A.thumb] : [S.photos.A.thumb, S.photos.B.thumb];
+  if (thumbs[0]) el.flipThumbA.src = thumbs[0];
+  if (thumbs[1]) el.flipThumbB.src = thumbs[1];
+  queueRender();
+}
+
+function syncVariantUI() {
+  document.querySelectorAll('.variant-btn').forEach((b) => {
+    const on = b.dataset.variant === S.variant;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
 }
 
 /* ---------------- Alignment + merge rendering ---------------- */
@@ -478,7 +506,8 @@ function renderMerge(ctx, W, H) {
   drawAligned(seamCtx, right, W, H);
   seamCtx.globalCompositeOperation = 'destination-in';
   const x = S.split * W;
-  const feather = Math.max(6, W * 0.025);
+  // Classic split = crisp seam; Soft seam / Sides flipped = feathered blend.
+  const feather = S.seam === 'hard' ? Math.max(2, W * 0.004) : Math.max(6, W * 0.025);
   const g = seamCtx.createLinearGradient(x - feather, 0, x + feather, 0);
   g.addColorStop(0, 'rgba(0,0,0,0)');
   g.addColorStop(1, 'rgba(0,0,0,1)');
@@ -770,10 +799,13 @@ function enterEditor() {
   if (!S.photos.A || !S.photos.B) return;
   S.split = 0.5;
   S.flipped = false;
+  S.seam = 'soft';
+  S.variant = 'soft';
   setSplit(0.5);
   updateEditorPills();
   updateAlignStats();
   updateTags();
+  syncVariantUI();
   el.dragHint.classList.remove('hidden');
   showView('editor');
   sizePreviewCanvas();
@@ -782,7 +814,7 @@ function enterEditor() {
 
 function resetApp() {
   S.photos.A = null; S.photos.B = null;
-  S.split = 0.5; S.flipped = false;
+  S.split = 0.5; S.flipped = false; S.seam = 'soft'; S.variant = 'soft';
   if (S.exportURL) { URL.revokeObjectURL(S.exportURL); S.exportURL = null; }
   renderSlot('A'); renderSlot('B');
   updateContinue();
@@ -836,6 +868,10 @@ function bindUpload() {
 function bindEditor() {
   el.btnFlip.addEventListener('click', flipSides);
   el.mBtnFlip.addEventListener('click', flipSides);
+  document.querySelectorAll('.variant-btn').forEach((b) => {
+    b.addEventListener('click', () => setVariant(b.dataset.variant));
+  });
+  syncVariantUI();
   const toExport = () => { buildExport(); showView('export'); };
   el.btnExport.addEventListener('click', toExport);
   el.mBtnExport.addEventListener('click', toExport);

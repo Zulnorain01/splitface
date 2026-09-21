@@ -7,7 +7,7 @@
    Bump CACHE_NAME when shipping a new build.
    ============================================================ */
 
-const CACHE_NAME = 'splitface-v4';
+const CACHE_NAME = 'splitface-v5';
 
 const APP_SHELL = [
   './',
